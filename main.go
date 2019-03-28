@@ -25,7 +25,7 @@ type config struct {
 var usage = `Lectio Content Generator.
 
 Usage:
-  generate hugo <destPath> from dropmark <url>... [--http-user-agent=<agent> --http-timeout-secs=<timeout> --simulate-scores --verbose --summarize]
+  lectioctl hugo <destPath> from dropmark <url>... [--http-user-agent=<agent> --http-timeout-secs=<timeout> --simulate-scores --verbose --summarize]
 
 Options:
   -h --help                     Show this screen.
