@@ -11,7 +11,7 @@ import (
 	"github.com/lectio/dropmark"
 	"github.com/lectio/generator"
 	"github.com/lectio/harvester"
-	observe "github.com/shah/observe-go"
+	"github.com/lectio/observe"
 )
 
 type ignoreURLsRegExList []*regexp.Regexp
@@ -169,7 +169,7 @@ func main() {
 	if options.Generate && options.Hugo && options.From && options.Dropmark {
 		options.createDestPathIfNotExists()
 
-		ch := harvester.MakeContentHarvester(observatory, options.harvesterIgnoreURLs, options.harvesterRemoveParamsFromURL, false)
+		ch := harvester.MakeContentHarvester(observatory, options.harvesterIgnoreURLs, options.harvesterRemoveParamsFromURL, true)
 
 		for i := 0; i < len(options.DropmarkURLs); i++ {
 			dropmarkURL := options.DropmarkURLs[i]
@@ -182,6 +182,9 @@ func main() {
 			}
 			generator := generator.NewHugoGenerator(collection, options.DestPath, options.Verbose, true)
 			generator.GenerateContent()
+			if generator.Errors() != nil {
+				fmt.Println(generator.Errors())
+			}
 			if options.Summarize {
 				fmt.Println(generator.GetActivitySummary())
 			}
