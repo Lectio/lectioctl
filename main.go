@@ -115,9 +115,9 @@ func (c *config) prepareDefaults() {
 func (c *config) finish() {
 	if c.errorsFile != nil {
 		c.errorsFile.Close()
-	}
-	if c.errorsEncountered && c.Verbose {
-		fmt.Printf("Errors encountered and saved in %q.\n", c.SaveErrorsInFile)
+		if c.errorsEncountered && c.Verbose {
+			fmt.Printf("Errors encountered and saved in %q.\n", c.SaveErrorsInFile)
+		}
 	}
 }
 
