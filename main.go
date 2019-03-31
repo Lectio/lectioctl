@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/docopt/docopt-go"
+	"github.com/hashicorp/go-multierror"
 	"github.com/lectio/dropmark"
 	"github.com/lectio/generator"
 	"github.com/lectio/harvester"
@@ -56,9 +57,12 @@ type config struct {
 	HarvesterIgnoreURLsText           []string      `docopt:"--harvester-ignore-url"`
 	HarvesterRemoveParamsFromURLsText []string      `docopt:"--harvester-remove-param-from-url"`
 	ShowConfig                        bool          `docopt:"--show-config"`
+	SaveErrorsInFile                  string        `docopt:"--save-errors-in-file"`
 	Verbose                           bool          `docopt:"-v,--verbose"`
 	Summarize                         bool          `docopt:"-s,--summarize"`
 
+	errorsFile                   *os.File
+	errorsEncountered            bool
 	harvesterIgnoreURLs          ignoreURLsRegExList
 	harvesterRemoveParamsFromURL removeParamsFromURLsRegExList
 }
@@ -98,6 +102,23 @@ func (c *config) prepareDefaults() {
 	c.prepareHTTPUserAgentDefault()
 	c.prepareHTTPTimeoutDefault()
 	c.prepareHarvesterDefaults()
+
+	if len(c.SaveErrorsInFile) > 0 {
+		f, err := os.Create(c.SaveErrorsInFile)
+		if err != nil {
+			panic(err)
+		}
+		c.errorsFile = f
+	}
+}
+
+func (c *config) finish() {
+	if c.errorsFile != nil {
+		c.errorsFile.Close()
+	}
+	if c.errorsEncountered && c.Verbose {
+		fmt.Printf("Errors encountered and saved in %q.\n", c.SaveErrorsInFile)
+	}
 }
 
 func (c *config) showConfig() {
@@ -123,10 +144,24 @@ func (c config) createDestPathIfNotExists() {
 	}
 }
 
+func (c *config) reportErrors(e *multierror.Error) {
+	if e == nil {
+		return
+	}
+	c.errorsEncountered = true
+	if c.errorsFile != nil {
+		for i := 0; i < len(e.Errors); i++ {
+			c.errorsFile.WriteString(fmt.Sprintf("%s\n", e.Errors[i]))
+		}
+	} else {
+		fmt.Println(e)
+	}
+}
+
 var usage = `Lectio Control Utility.
 
 Usage:
-  lectioctl generate hugo <destPath> from dropmark <url>... [--harvester-ignore-url=<hiURL>... --harvester-remove-param-from-url=<hrparam>... --http-user-agent=<agent> --http-timeout-secs=<timeout> --create-dest-path --simulate-scores --show-config --verbose --summarize]
+  lectioctl generate hugo <destPath> from dropmark <url>... [--save-errors-in-file=<file> --harvester-ignore-url=<hiURL>... --harvester-remove-param-from-url=<hrparam>... --http-user-agent=<agent> --http-timeout-secs=<timeout> --create-dest-path --simulate-scores --show-config --verbose --summarize]
 
 Options:
   -h --help                                   Show this screen.
@@ -136,6 +171,7 @@ Options:
   --simulate-scores                           Don't call Facebook, LinkedIn, etc. APIs; simulate the values instead
   --harvester-ignore-url=<hiURL>              A golang Regexp which instructs the harvester to ignore this URL pattern
   --harvester-remove-param-from-url=<hrparam> A golang Regexp which instructs the harvester to remove this param from URL query string
+  --save-errors-in-file=<file>                If errors are found, save them to this file
   --show-config                               Show all config variables before running the utility
   -v --verbose                                Show verbose messages
   -s --summarize                              Summarize activity after execution
@@ -177,17 +213,15 @@ func main() {
 			if getErr != nil {
 				panic(getErr)
 			}
-			if collection.Errors() != nil {
-				fmt.Println(collection.Errors())
-			}
+			options.reportErrors(collection.Errors())
 			generator := generator.NewHugoGenerator(collection, options.DestPath, options.Verbose, true)
 			generator.GenerateContent()
-			if generator.Errors() != nil {
-				fmt.Println(generator.Errors())
-			}
+			options.reportErrors(generator.Errors())
 			if options.Summarize {
 				fmt.Println(generator.GetActivitySummary())
 			}
 		}
 	}
+
+	options.finish()
 }
