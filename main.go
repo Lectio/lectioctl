@@ -43,11 +43,12 @@ func (l removeParamsFromURLsRegExList) RemoveQueryParamFromResourceURL(paramName
 type config struct {
 	Generate                 bool          `docopt:"generate"`
 	Hugo                     bool          `docopt:"hugo"`
-	DestPath                 string        `docopt:"<destPath>"`
+	HugoHomePath             string        `docopt:"<hugoHomePath>"`
+	HugoContentID            string        `docopt:"<hugoContentID>"`
 	From                     bool          `docopt:"from"`
 	Dropmark                 bool          `docopt:"dropmark"`
 	DropmarkURLs             []string      `docopt:"<url>"`
-	CreateDestPath           bool          `docopt:"--create-dest-path"`
+	CreateDestPaths          bool          `docopt:"--create-dest-paths"`
 	HTTPUserAgent            string        `docopt:"--http-user-agent"`
 	HTTPTimeout              time.Duration `docopt:"--http-timeout-secs"`
 	SimulateScores           bool          `docopt:"--simulate-scores"`
@@ -119,26 +120,14 @@ func (c *config) finish() {
 }
 
 func (c *config) showConfig() {
-	fmt.Printf("DestPath: %q\n", c.DestPath)
-	fmt.Printf("CreateDestPath: %v\n", c.CreateDestPath)
+	fmt.Printf("HugoHomePath: %q\n", c.HugoHomePath)
+	fmt.Printf("HugoContentID: %q\n", c.HugoContentID)
+	fmt.Printf("CreateDestPaths: %v\n", c.CreateDestPaths)
 	fmt.Printf("SimulateScores: %v\n", c.SimulateScores)
 	fmt.Printf("HTTPUserAgent: %q\n", c.HTTPUserAgent)
 	fmt.Printf("HTTPTimeout: %d\n", c.HTTPTimeout)
 	fmt.Printf("HarvesterIgnoreURLs: %+v\n", c.ignoreURLs)
 	fmt.Printf("HarvesterRemoveParamsFromURLs: %+v\n", c.removeParamsFromURL)
-}
-
-func (c config) createDestPathIfNotExists() {
-	if !c.CreateDestPath {
-		return
-	}
-	created, err := CreateDirIfNotExist(c.DestPath)
-	if err != nil {
-		panic(err)
-	}
-	if created && c.Verbose {
-		fmt.Printf("Created directory %q\n", c.DestPath)
-	}
 }
 
 func (c *config) reportErrors(errors []error) {
@@ -160,11 +149,11 @@ func (c *config) reportErrors(errors []error) {
 var usage = `Lectio Control Utility.
 
 Usage:
-  lectioctl generate hugo <destPath> from dropmark <url>... [--save-errors-in-file=<file> --ignore-url=<iupattern>... --remove-param-from-url=<rparam>... --http-user-agent=<agent> --http-timeout-secs=<timeout> --create-dest-path --simulate-scores --show-config --verbose --summarize]
+  lectioctl generate hugo <hugoHomePath> <hugoContentID> from dropmark <url>... [--save-errors-in-file=<file> --ignore-url=<iupattern>... --remove-param-from-url=<rparam>... --http-user-agent=<agent> --http-timeout-secs=<timeout> --create-dest-paths --simulate-scores --show-config --verbose --summarize]
 
 Options:
   -h --help                         Show this screen.
-  --create-dest-path                Create the destination path if it doesn't already exist
+  --create-dest-paths               Create the destination path(s) if they doesn't already exist
   --http-user-agent=<agent>         The string to use for HTTP User-Agent header value
   --http-timeout-secs=<timeout>     How many seconds to wait before giving up on the HTTP request
   --simulate-scores                 Don't call Facebook, LinkedIn, etc. APIs; simulate the values instead
@@ -194,8 +183,6 @@ func main() {
 	}
 
 	if options.Generate && options.Hugo && options.From && options.Dropmark {
-		options.createDestPathIfNotExists()
-
 		for i := 0; i < len(options.DropmarkURLs); i++ {
 			dropmarkURL := options.DropmarkURLs[i]
 			collection, getErr := dropmark.GetDropmarkCollection(dropmarkURL, options.removeParamsFromURL, options.ignoreURLs, true, options.Verbose, options.HTTPUserAgent, options.HTTPTimeout)
@@ -203,7 +190,10 @@ func main() {
 				panic(getErr)
 			}
 			options.reportErrors(collection.Errors())
-			generator := generator.NewHugoGenerator(collection, options.DestPath, options.Verbose, true)
+			generator, genErr := generator.NewHugoGenerator(collection, options.HugoHomePath, options.HugoContentID, options.CreateDestPaths, options.Verbose, true)
+			if genErr != nil {
+				panic(genErr)
+			}
 			generator.GenerateContent()
 			options.reportErrors(generator.Errors())
 			if options.Summarize {
