@@ -8,17 +8,14 @@ import (
 	"time"
 
 	"github.com/docopt/docopt-go"
-	"github.com/hashicorp/go-multierror"
 	"github.com/lectio/dropmark"
 	"github.com/lectio/generator"
-	"github.com/lectio/harvester"
-	"github.com/lectio/observe"
 )
 
 type ignoreURLsRegExList []*regexp.Regexp
 type removeParamsFromURLsRegExList []*regexp.Regexp
 
-func (l ignoreURLsRegExList) IgnoreDiscoveredResource(url *url.URL) (bool, string) {
+func (l ignoreURLsRegExList) IgnoreResource(url *url.URL) (bool, string) {
 	URLtext := url.String()
 	for _, regEx := range l {
 		if regEx.MatchString(URLtext) {
@@ -28,12 +25,12 @@ func (l ignoreURLsRegExList) IgnoreDiscoveredResource(url *url.URL) (bool, strin
 	return false, ""
 }
 
-func (l removeParamsFromURLsRegExList) CleanDiscoveredResource(url *url.URL) bool {
+func (l removeParamsFromURLsRegExList) CleanResourceParams(url *url.URL) bool {
 	// we try to clean all URLs, not specific ones
 	return true
 }
 
-func (l removeParamsFromURLsRegExList) RemoveQueryParamFromResource(paramName string) (bool, string) {
+func (l removeParamsFromURLsRegExList) RemoveQueryParamFromResourceURL(paramName string) (bool, string) {
 	for _, regEx := range l {
 		if regEx.MatchString(paramName) {
 			return true, fmt.Sprintf("Matched cleaner rule `%s`", regEx.String())
@@ -44,27 +41,27 @@ func (l removeParamsFromURLsRegExList) RemoveQueryParamFromResource(paramName st
 }
 
 type config struct {
-	Generate                          bool          `docopt:"generate"`
-	Hugo                              bool          `docopt:"hugo"`
-	DestPath                          string        `docopt:"<destPath>"`
-	From                              bool          `docopt:"from"`
-	Dropmark                          bool          `docopt:"dropmark"`
-	DropmarkURLs                      []string      `docopt:"<url>"`
-	CreateDestPath                    bool          `docopt:"--create-dest-path"`
-	HTTPUserAgent                     string        `docopt:"--http-user-agent"`
-	HTTPTimeout                       time.Duration `docopt:"--http-timeout-secs"`
-	SimulateScores                    bool          `docopt:"--simulate-scores"`
-	HarvesterIgnoreURLsText           []string      `docopt:"--harvester-ignore-url"`
-	HarvesterRemoveParamsFromURLsText []string      `docopt:"--harvester-remove-param-from-url"`
-	ShowConfig                        bool          `docopt:"--show-config"`
-	SaveErrorsInFile                  string        `docopt:"--save-errors-in-file"`
-	Verbose                           bool          `docopt:"-v,--verbose"`
-	Summarize                         bool          `docopt:"-s,--summarize"`
+	Generate                 bool          `docopt:"generate"`
+	Hugo                     bool          `docopt:"hugo"`
+	DestPath                 string        `docopt:"<destPath>"`
+	From                     bool          `docopt:"from"`
+	Dropmark                 bool          `docopt:"dropmark"`
+	DropmarkURLs             []string      `docopt:"<url>"`
+	CreateDestPath           bool          `docopt:"--create-dest-path"`
+	HTTPUserAgent            string        `docopt:"--http-user-agent"`
+	HTTPTimeout              time.Duration `docopt:"--http-timeout-secs"`
+	SimulateScores           bool          `docopt:"--simulate-scores"`
+	IgnoreURLsText           []string      `docopt:"--ignore-url"`
+	RemoveParamsFromURLsText []string      `docopt:"--remove-param-from-url"`
+	ShowConfig               bool          `docopt:"--show-config"`
+	SaveErrorsInFile         string        `docopt:"--save-errors-in-file"`
+	Verbose                  bool          `docopt:"-v,--verbose"`
+	Summarize                bool          `docopt:"-s,--summarize"`
 
-	errorsFile                   *os.File
-	errorsEncountered            bool
-	harvesterIgnoreURLs          ignoreURLsRegExList
-	harvesterRemoveParamsFromURL removeParamsFromURLsRegExList
+	errorsFile          *os.File
+	errorsEncountered   bool
+	ignoreURLs          ignoreURLsRegExList
+	removeParamsFromURL removeParamsFromURLsRegExList
 }
 
 func (c *config) prepareHTTPUserAgentDefault() {
@@ -82,19 +79,19 @@ func (c *config) prepareHTTPTimeoutDefault() {
 }
 
 func (c *config) prepareHarvesterDefaults() {
-	if len(c.HarvesterIgnoreURLsText) == 0 {
-		c.HarvesterIgnoreURLsText = []string{`^https://twitter.com/(.*?)/status/(.*)$`, `https://t.co`}
+	if len(c.IgnoreURLsText) == 0 {
+		c.IgnoreURLsText = []string{`^https://twitter.com/(.*?)/status/(.*)$`, `https://t.co`}
 	}
-	if len(c.HarvesterRemoveParamsFromURLsText) == 0 {
-		c.HarvesterRemoveParamsFromURLsText = []string{`^utm_`}
+	if len(c.RemoveParamsFromURLsText) == 0 {
+		c.RemoveParamsFromURLsText = []string{`^utm_`}
 	}
-	c.harvesterIgnoreURLs = make([]*regexp.Regexp, len(c.HarvesterIgnoreURLsText))
-	for i := 0; i < len(c.HarvesterIgnoreURLsText); i++ {
-		c.harvesterIgnoreURLs[i] = regexp.MustCompile(c.HarvesterIgnoreURLsText[i])
+	c.ignoreURLs = make([]*regexp.Regexp, len(c.IgnoreURLsText))
+	for i := 0; i < len(c.IgnoreURLsText); i++ {
+		c.ignoreURLs[i] = regexp.MustCompile(c.IgnoreURLsText[i])
 	}
-	c.harvesterRemoveParamsFromURL = make([]*regexp.Regexp, len(c.HarvesterRemoveParamsFromURLsText))
-	for i := 0; i < len(c.HarvesterRemoveParamsFromURLsText); i++ {
-		c.harvesterRemoveParamsFromURL[i] = regexp.MustCompile(c.HarvesterRemoveParamsFromURLsText[i])
+	c.removeParamsFromURL = make([]*regexp.Regexp, len(c.RemoveParamsFromURLsText))
+	for i := 0; i < len(c.RemoveParamsFromURLsText); i++ {
+		c.removeParamsFromURL[i] = regexp.MustCompile(c.RemoveParamsFromURLsText[i])
 	}
 }
 
@@ -127,8 +124,8 @@ func (c *config) showConfig() {
 	fmt.Printf("SimulateScores: %v\n", c.SimulateScores)
 	fmt.Printf("HTTPUserAgent: %q\n", c.HTTPUserAgent)
 	fmt.Printf("HTTPTimeout: %d\n", c.HTTPTimeout)
-	fmt.Printf("HarvesterIgnoreURLs: %+v\n", c.harvesterIgnoreURLs)
-	fmt.Printf("HarvesterRemoveParamsFromURLs: %+v\n", c.harvesterRemoveParamsFromURL)
+	fmt.Printf("HarvesterIgnoreURLs: %+v\n", c.ignoreURLs)
+	fmt.Printf("HarvesterRemoveParamsFromURLs: %+v\n", c.removeParamsFromURL)
 }
 
 func (c config) createDestPathIfNotExists() {
@@ -144,48 +141,42 @@ func (c config) createDestPathIfNotExists() {
 	}
 }
 
-func (c *config) reportErrors(e *multierror.Error) {
-	if e == nil {
+func (c *config) reportErrors(errors []error) {
+	if errors == nil {
 		return
 	}
 	c.errorsEncountered = true
 	if c.errorsFile != nil {
-		for i := 0; i < len(e.Errors); i++ {
-			c.errorsFile.WriteString(fmt.Sprintf("%s\n", e.Errors[i]))
+		for _, e := range errors {
+			c.errorsFile.WriteString(fmt.Sprintf("* %v\n", e))
 		}
 	} else {
-		fmt.Println(e)
+		for _, e := range errors {
+			fmt.Printf("* %v\n", e)
+		}
 	}
 }
 
 var usage = `Lectio Control Utility.
 
 Usage:
-  lectioctl generate hugo <destPath> from dropmark <url>... [--save-errors-in-file=<file> --harvester-ignore-url=<hiURL>... --harvester-remove-param-from-url=<hrparam>... --http-user-agent=<agent> --http-timeout-secs=<timeout> --create-dest-path --simulate-scores --show-config --verbose --summarize]
+  lectioctl generate hugo <destPath> from dropmark <url>... [--save-errors-in-file=<file> --ignore-url=<iupattern>... --remove-param-from-url=<rparam>... --http-user-agent=<agent> --http-timeout-secs=<timeout> --create-dest-path --simulate-scores --show-config --verbose --summarize]
 
 Options:
-  -h --help                                   Show this screen.
-  --create-dest-path                          Create the destination path if it doesn't already exist
-  --http-user-agent=<agent>                   The string to use for HTTP User-Agent header value
-  --http-timeout-secs=<timeout>               How many seconds to wait before giving up on the HTTP request
-  --simulate-scores                           Don't call Facebook, LinkedIn, etc. APIs; simulate the values instead
-  --harvester-ignore-url=<hiURL>              A golang Regexp which instructs the harvester to ignore this URL pattern
-  --harvester-remove-param-from-url=<hrparam> A golang Regexp which instructs the harvester to remove this param from URL query string
-  --save-errors-in-file=<file>                If errors are found, save them to this file
-  --show-config                               Show all config variables before running the utility
-  -v --verbose                                Show verbose messages
-  -s --summarize                              Summarize activity after execution
-  --version                                   Show version.`
+  -h --help                         Show this screen.
+  --create-dest-path                Create the destination path if it doesn't already exist
+  --http-user-agent=<agent>         The string to use for HTTP User-Agent header value
+  --http-timeout-secs=<timeout>     How many seconds to wait before giving up on the HTTP request
+  --simulate-scores                 Don't call Facebook, LinkedIn, etc. APIs; simulate the values instead
+  --ignore-url=<iupattern>          A golang Regexp which instructs the harvester to ignore this URL pattern
+  --remove-param-from-url=<rparam>  A golang Regexp which instructs the harvester to remove this param from URL query string
+  --save-errors-in-file=<file>      If errors are found, save them to this file
+  --show-config                     Show all config variables before running the utility
+  -v --verbose                      Show verbose messages
+  -s --summarize                    Summarize activity after execution
+  --version                         Show version.`
 
 func main() {
-	_, set := os.LookupEnv("JAEGER_SERVICE_NAME")
-	if !set {
-		os.Setenv("JAEGER_SERVICE_NAME", "Lectio Control Utility")
-	}
-
-	observatory := observe.MakeObservatoryFromEnv()
-	span := observatory.StartTrace("lectioctl")
-
 	arguments, pdErr := docopt.ParseDoc(usage)
 	if pdErr != nil {
 		panic(pdErr)
@@ -205,11 +196,9 @@ func main() {
 	if options.Generate && options.Hugo && options.From && options.Dropmark {
 		options.createDestPathIfNotExists()
 
-		ch := harvester.MakeContentHarvester(observatory, options.harvesterIgnoreURLs, options.harvesterRemoveParamsFromURL, true)
-
 		for i := 0; i < len(options.DropmarkURLs); i++ {
 			dropmarkURL := options.DropmarkURLs[i]
-			collection, getErr := dropmark.GetDropmarkCollection(ch, span, options.Verbose, dropmarkURL, options.HTTPUserAgent, options.HTTPTimeout)
+			collection, getErr := dropmark.GetDropmarkCollection(dropmarkURL, options.removeParamsFromURL, options.ignoreURLs, true, options.Verbose, options.HTTPUserAgent, options.HTTPTimeout)
 			if getErr != nil {
 				panic(getErr)
 			}
