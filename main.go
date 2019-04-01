@@ -149,7 +149,7 @@ func (c *config) reportErrors(errors []error) {
 var usage = `Lectio Control Utility.
 
 Usage:
-  lectioctl generate hugo <hugoHomePath> <hugoContentID> from dropmark <url>... [--save-errors-in-file=<file> --ignore-url=<iupattern>... --remove-param-from-url=<rparam>... --http-user-agent=<agent> --http-timeout-secs=<timeout> --create-dest-paths --simulate-scores --show-config --verbose --summarize]
+  lectioctl generate hugo <hugoHomePath> <hugoContentID> from dropmark <url>... [--save-errors-in-file=<file> --ignore-url=<iupattern>... --remove-param-from-url=<rparam>... --http-user-agent=<agent> --http-timeout-secs=<timeout> --create-dest-paths --simulate-scores --show-config --verbose]
 
 Options:
   -h --help                         Show this screen.
@@ -162,7 +162,6 @@ Options:
   --save-errors-in-file=<file>      If errors are found, save them to this file
   --show-config                     Show all config variables before running the utility
   -v --verbose                      Show verbose messages
-  -s --summarize                    Summarize activity after execution
   --version                         Show version.`
 
 func main() {
@@ -196,9 +195,6 @@ func main() {
 			}
 			generator.GenerateContent()
 			options.reportErrors(generator.Errors())
-			if options.Summarize {
-				fmt.Println(generator.GetActivitySummary())
-			}
 		}
 	}
 
