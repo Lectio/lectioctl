@@ -42,6 +42,8 @@ github.com/lectio/content v0.0.0-20190331220514-40d46ec7b371 h1:zYLdlVTQFnuTWKnk
 github.com/lectio/content v0.0.0-20190331220514-40d46ec7b371/go.mod h1:Jbb9LwztDexbeqOj4Jqry2dT25P2up8QqCWoF1s0FWg=
 github.com/lectio/content v0.0.0-20190401020354-c1c1d46f999a h1:qLuSB9hDAemkoH5Pmv2zvbkXHZ4A/48hmbfU0b16kNw=
 github.com/lectio/content v0.0.0-20190401020354-c1c1d46f999a/go.mod h1:Jbb9LwztDexbeqOj4Jqry2dT25P2up8QqCWoF1s0FWg=
+github.com/lectio/content v0.0.0-20190402021138-7b14c2b9b318 h1:Z2ef7waelkXGNDfgkOeyRaEswVI3RvaF0dod4G8jbgU=
+github.com/lectio/content v0.0.0-20190402021138-7b14c2b9b318/go.mod h1:aPMZ7JR+EIgvec7oRye57holXME8JWkxhLEzJzxe72o=
 github.com/lectio/dropmark v0.0.0-20190326233523-0c3a229416ba h1:uMPiOrNVJ2t9Lgk/TbMAJkMy3C7FHsKG0pCX54X9zBI=
 github.com/lectio/dropmark v0.0.0-20190326233523-0c3a229416ba/go.mod h1:20Npxv5qWcLu+5XsM5mnsgCPUxxtcy3LfOs4Z2ByWQs=
 github.com/lectio/dropmark v0.0.0-20190329150512-1d4db1b7263b h1:rdSITAmHJ6mwlIIxXk7j2ejhZ6vMPdPJnQHxADdI3Ok=
@@ -70,6 +72,16 @@ github.com/lectio/dropmark v0.0.0-20190331220648-d02e35b0ff44 h1:qOBUn6tvWT4xcUP
 github.com/lectio/dropmark v0.0.0-20190331220648-d02e35b0ff44/go.mod h1:GDEaxnMBzAHX72hUTfOAgp6pFsrYHlaW+8kphNG+A30=
 github.com/lectio/dropmark v0.0.0-20190401020613-e2e3864b1511 h1:I48xjDjgjqbyVx6NOyYmh/8BdWRimI2WK856F++rN1A=
 github.com/lectio/dropmark v0.0.0-20190401020613-e2e3864b1511/go.mod h1:9J47G/0kRwAum4wTvOj61qdNRkjyIKUATpHJSYowRiA=
+github.com/lectio/dropmark v0.0.0-20190402021513-c7ace1e99b42 h1:wre8D6tcfivdYuy2UIEWh50J8Ef9KjjHfTN2cQlgkPo=
+github.com/lectio/dropmark v0.0.0-20190402021513-c7ace1e99b42/go.mod h1:/NfK8T8BYX+E2QtP7cjPkyC/7+m1vOffPpST5nirqZ4=
+github.com/lectio/dropmark v0.0.0-20190402022519-26e1a97b175a h1:Vf66vGcAXY9PLc9DqW2Ak5bJcCBpwow3obpDLqA/g6s=
+github.com/lectio/dropmark v0.0.0-20190402022519-26e1a97b175a/go.mod h1:/NfK8T8BYX+E2QtP7cjPkyC/7+m1vOffPpST5nirqZ4=
+github.com/lectio/dropmark v0.0.0-20190402022650-982eabdff92c h1:CxM6a6z85kMkzzB49Q9/lUdQTSagh8lT604momIsn58=
+github.com/lectio/dropmark v0.0.0-20190402022650-982eabdff92c/go.mod h1:/NfK8T8BYX+E2QtP7cjPkyC/7+m1vOffPpST5nirqZ4=
+github.com/lectio/dropmark v0.0.0-20190402030102-ec251bc50413 h1:N9z+Zlxo/MW9F9TV1tOPfvL/DcfQPd1gf/kpeMPS/JU=
+github.com/lectio/dropmark v0.0.0-20190402030102-ec251bc50413/go.mod h1:/NfK8T8BYX+E2QtP7cjPkyC/7+m1vOffPpST5nirqZ4=
+github.com/lectio/dropmark v0.0.0-20190402030749-b96bd43076be h1:GnsMK53j0/riZA+1M2Pf8o0eovhcRdhr4HzKbwziVGY=
+github.com/lectio/dropmark v0.0.0-20190402030749-b96bd43076be/go.mod h1:/NfK8T8BYX+E2QtP7cjPkyC/7+m1vOffPpST5nirqZ4=
 github.com/lectio/generator v0.0.0-20190327010613-50e9343406f6 h1:6Cjua1SgXtTFpAMY2wv7gs46AMBHZNyI9Vfm5rjcIU4=
 github.com/lectio/generator v0.0.0-20190327010613-50e9343406f6/go.mod h1:r6aYYBwzfsZg68kCo8SmQmgbcl3olPiXr5QKNopcbfQ=
 github.com/lectio/generator v0.0.0-20190328133958-feae637b51e4 h1:oDyMccFizU4dYwzXXF8Kh0qIPpmDGebUMmllyzq1NwM=
@@ -124,6 +136,10 @@ github.com/lectio/generator v0.0.0-20190401201124-7fcb67ab80c0 h1:FMhl3yYZ6IeYz3
 github.com/lectio/generator v0.0.0-20190401201124-7fcb67ab80c0/go.mod h1:+tx1M5WlDGsVO8pIhPatfImobV9DSl+QQdGEShguJDI=
 github.com/lectio/generator v0.0.0-20190401201916-e6d850f81388 h1:0ZqAMYmAcyh1yQBFbPG8yIPYzwTKhymyJJo1p299dPM=
 github.com/lectio/generator v0.0.0-20190401201916-e6d850f81388/go.mod h1:+tx1M5WlDGsVO8pIhPatfImobV9DSl+QQdGEShguJDI=
+github.com/lectio/generator v0.0.0-20190402021921-b0df5de948ae h1:V3JJmDl2N2/Gh+7EQGIfzEiFCayBZ/Ll52fv2bj+PbI=
+github.com/lectio/generator v0.0.0-20190402021921-b0df5de948ae/go.mod h1:llHt0ihK+R5Y1YGHGO9QPs4p4KaB9vy5TThx5P3cBL4=
+github.com/lectio/generator v0.0.0-20190402031411-8ce98ad4ee34 h1:5wf7JFGrq5ZrcogLYLSOy10Jv/dhrgF70z1znp4Mqh4=
+github.com/lectio/generator v0.0.0-20190402031411-8ce98ad4ee34/go.mod h1:8gqHQYYsUNgheV6REMS5X0BVse2xV4r9MvrXWrCoLig=
 github.com/lectio/harvester v0.0.0-20190325024938-d83e2e4eacd2 h1:0r9Q05g4aVX+OM3xiXe3K6iBoguVyeDv6P1mQGgGMRM=
 github.com/lectio/harvester v0.0.0-20190325024938-d83e2e4eacd2/go.mod h1:ApOjx8MRzEjLcq0nA7kVGZHnv++F3uF7EoOWriQiRfE=
 github.com/lectio/harvester v0.0.0-20190328131814-a04d9e97fd5c h1:y+RYGVDM1kKOjBV09422nHexqjTCK9kwjFuyGlgiCf0=
@@ -234,6 +250,7 @@ golang.org/x/tools v0.0.0-20190330180304-aef51cc3777c/go.mod h1:LCzVGOaR6xXOjkQ3
 golang.org/x/tools v0.0.0-20190401163957-4fc9f0bfa59a/go.mod h1:LCzVGOaR6xXOjkQ3onu1FJEFr0SW1gC7cKk1uF8kGRs=
 golang.org/x/tools v0.0.0-20190401192132-bf99c0974b0e/go.mod h1:LCzVGOaR6xXOjkQ3onu1FJEFr0SW1gC7cKk1uF8kGRs=
 golang.org/x/tools v0.0.0-20190401201229-1bac838f5b88/go.mod h1:LCzVGOaR6xXOjkQ3onu1FJEFr0SW1gC7cKk1uF8kGRs=
+golang.org/x/tools v0.0.0-20190401205534-4c644d7e323d/go.mod h1:LCzVGOaR6xXOjkQ3onu1FJEFr0SW1gC7cKk1uF8kGRs=
 gonum.org/v1/gonum v0.0.0-20190312223110-e28f136e01a8/go.mod h1:jevfED4GnIEnJrWW55YmY9DMhajHcnkqVnEXmEtMyNI=
 gonum.org/v1/gonum v0.0.0-20190325211145-e42c1265cdd5/go.mod h1:2ltnJ7xHfj0zHS40VVPYEAAMTa3ZGguvHGBSJeRWqE0=
 gonum.org/v1/gonum v0.0.0-20190327053044-9996f1428eb6/go.mod h1:2ltnJ7xHfj0zHS40VVPYEAAMTa3ZGguvHGBSJeRWqE0=
