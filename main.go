@@ -7,9 +7,12 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/lectio/score"
+
 	"github.com/docopt/docopt-go"
 	"github.com/lectio/dropmark"
 	"github.com/lectio/generator"
+	"github.com/lectio/link"
 )
 
 type ignoreURLsRegExList []*regexp.Regexp
@@ -184,12 +187,25 @@ func main() {
 	if options.Generate && options.Hugo && options.From && options.Dropmark {
 		for i := 0; i < len(options.DropmarkURLs); i++ {
 			dropmarkURL := options.DropmarkURLs[i]
-			collection, getErr := dropmark.GetDropmarkCollection(dropmarkURL, options.removeParamsFromURL, options.ignoreURLs, true, options.Verbose, options.HTTPUserAgent, options.HTTPTimeout)
+			dc, getErr := dropmark.GetDropmarkCollection(dropmarkURL, options.removeParamsFromURL, options.ignoreURLs, true, options.Verbose, options.HTTPUserAgent, options.HTTPTimeout)
 			if getErr != nil {
 				panic(getErr)
 			}
-			options.reportErrors(collection.Errors())
-			generator, genErr := generator.NewHugoGenerator(collection, options.HugoHomePath, options.HugoContentID, options.CreateDestPaths, options.Verbose, true)
+			options.reportErrors(dc.Errors())
+			handler := func(index int) (*url.URL, string, error) {
+				item := dc.Items[index]
+				url, urlErr := link.GetResourceURL(item.TargetResource())
+				if urlErr != nil {
+					return url, item.Keys().GloballyUniqueKey(), urlErr
+				}
+				return url, item.Keys().GloballyUniqueKey(), nil
+			}
+			iterator := func() (startIndex int, endIndex int, retrievalFn score.TargetsIteratorRetrievalFn) {
+				return 0, len(dc.Items) - 1, handler
+			}
+			sc := score.MakeCollection(iterator, options.Verbose, true)
+			options.reportErrors(sc.Errors())
+			generator, genErr := generator.NewHugoGenerator(dc, sc, options.HugoHomePath, options.HugoContentID, options.CreateDestPaths, options.Verbose, true)
 			if genErr != nil {
 				panic(genErr)
 			}
