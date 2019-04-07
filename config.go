@@ -5,6 +5,8 @@ import (
 	"os"
 	"regexp"
 	"time"
+
+	"github.com/docopt/docopt-go"
 )
 
 var usage = `Lectio Control Utility.
@@ -24,6 +26,21 @@ Options:
   --show-config                     Show all config variables before running the utility
   -v --verbose                      Show verbose messages
   --version                         Show version.`
+
+func getUserOptions() *config {
+	arguments, pdErr := docopt.ParseDoc(usage)
+	if pdErr != nil {
+		panic(pdErr)
+	}
+	options := new(config)
+	bindErr := arguments.Bind(options)
+	if bindErr != nil {
+		fmt.Printf("%+v, %v", options, bindErr)
+		panic(pdErr)
+	}
+	options.prepareDefaults()
+	return options
+}
 
 type config struct {
 	Generate                 bool          `docopt:"generate"`

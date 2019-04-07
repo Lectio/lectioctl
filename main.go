@@ -1,11 +1,5 @@
 package main
 
-import (
-	"fmt"
-
-	"github.com/docopt/docopt-go"
-)
-
 /****
  * TODO: Implement [Workbox](https://www.thepolyglotdeveloper.com/2019/03/service-workers-workbox-hugo-static-generated-site/)
  *       [Another implementation strategy](https://www.valleyease.me/2018/12/26/create-personal-pwa-site-with-hugo-and-webpack/)
@@ -13,17 +7,7 @@ import (
  ****/
 
 func main() {
-	arguments, pdErr := docopt.ParseDoc(usage)
-	if pdErr != nil {
-		panic(pdErr)
-	}
-	options := new(config)
-	bindErr := arguments.Bind(options)
-	if bindErr != nil {
-		fmt.Printf("%+v, %v", options, bindErr)
-		panic(pdErr)
-	}
-	options.prepareDefaults()
+	options := getUserOptions()
 
 	if options.ShowConfig {
 		options.showConfig()
