@@ -124,9 +124,8 @@ func (c *config) prepareDefaults() {
 func (c *config) makeProgressReporter() *progressReporter {
 	if c.Verbose {
 		return makeProgressReporter(true)
-	} else {
-		return nil
 	}
+	return nil
 }
 
 func (c *config) finish() {
