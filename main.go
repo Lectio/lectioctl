@@ -68,6 +68,7 @@ type config struct {
 	Verbose                  bool          `docopt:"-v,--verbose"`
 	Summarize                bool          `docopt:"-s,--summarize"`
 
+	nlp                 *naturalLanguageProcessor
 	errorsFile          *os.File
 	errorsEncountered   bool
 	ignoreURLs          ignoreURLsRegExList
@@ -109,6 +110,7 @@ func (c *config) prepareDefaults() {
 	c.prepareHTTPUserAgentDefault()
 	c.prepareHTTPTimeoutDefault()
 	c.prepareHarvesterDefaults()
+	c.nlp = makeDefaultNLP()
 
 	if len(c.SaveErrorsInFile) > 0 {
 		f, err := os.Create(c.SaveErrorsInFile)
@@ -116,6 +118,14 @@ func (c *config) prepareDefaults() {
 			panic(err)
 		}
 		c.errorsFile = f
+	}
+}
+
+func (c *config) makeProgressReporter() *progressReporter {
+	if c.Verbose {
+		return makeProgressReporter(true)
+	} else {
+		return nil
 	}
 }
 
@@ -193,7 +203,7 @@ func main() {
 	if options.Generate && options.Hugo && options.From && options.Dropmark {
 		for i := 0; i < len(options.DropmarkURLs); i++ {
 			dropmarkURL := options.DropmarkURLs[i]
-			dropmarkCollection, getErr := dropmark.GetDropmarkCollection(dropmarkURL, options.removeParamsFromURL, options.ignoreURLs, true, options.Verbose, options.HTTPUserAgent, options.HTTPTimeout)
+			dropmarkCollection, getErr := dropmark.GetDropmarkCollection(dropmarkURL, options.nlp, options.removeParamsFromURL, options.ignoreURLs, true, options.makeProgressReporter(), options.HTTPUserAgent, options.HTTPTimeout)
 			if getErr != nil {
 				panic(getErr)
 			}
@@ -219,12 +229,12 @@ func main() {
 			iterator := func() (startIndex int, endIndex int, retrievalFn score.TargetsIteratorRetrievalFn) {
 				return 0, len(fcItems) - 1, handler
 			}
-			sc := score.MakeCollection(iterator, options.Verbose, true)
+			sc := score.MakeCollection(iterator, options.makeProgressReporter(), true)
 
 			// TODO: implement [recommendation system](https://medium.com/@williamscott701/pinsage-how-pinterest-improved-their-recommendation-system-149cb35fdfa5)
 
 			options.reportErrors(sc.Errors())
-			generator, genErr := generator.NewHugoGenerator(filterResults.Filtered(), sc, options.HugoHomePath, options.HugoContentID, options.CreateDestPaths, options.Verbose, true)
+			generator, genErr := generator.NewHugoGenerator(filterResults.Filtered(), sc, options.HugoHomePath, options.HugoContentID, options.CreateDestPaths, options.makeProgressReporter(), true)
 			if genErr != nil {
 				panic(genErr)
 			}
