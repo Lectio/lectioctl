@@ -15,6 +15,12 @@ import (
 	"github.com/lectio/generator"
 )
 
+/****
+ * TODO: Implement [Workbox](https://www.thepolyglotdeveloper.com/2019/03/service-workers-workbox-hugo-static-generated-site/)
+ *       [Another implementation strategy](https://www.valleyease.me/2018/12/26/create-personal-pwa-site-with-hugo-and-webpack/)
+ * TODO: Implement [JSON API (Custom Output Formats)](https://forestry.io/blog/build-a-json-api-with-hugo/)
+ ****/
+
 type ignoreURLsRegExList []*regexp.Regexp
 type removeParamsFromURLsRegExList []*regexp.Regexp
 
@@ -193,6 +199,7 @@ func main() {
 			}
 			options.reportErrors(dropmarkCollection.Errors())
 
+			// TODO: add duplicates detection as part of "invalid items" filter
 			filterResults := dropmarkCollection.FilterInvalidItems()
 			options.reportErrors(filterResults.Errors())
 
@@ -213,6 +220,8 @@ func main() {
 				return 0, len(fcItems) - 1, handler
 			}
 			sc := score.MakeCollection(iterator, options.Verbose, true)
+
+			// TODO: implement [recommendation system](https://medium.com/@williamscott701/pinsage-how-pinterest-improved-their-recommendation-system-149cb35fdfa5)
 
 			options.reportErrors(sc.Errors())
 			generator, genErr := generator.NewHugoGenerator(filterResults.Filtered(), sc, options.HugoHomePath, options.HugoContentID, options.CreateDestPaths, options.Verbose, true)
