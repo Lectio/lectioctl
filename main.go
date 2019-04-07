@@ -7,12 +7,12 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/lectio/content"
 	"github.com/lectio/score"
 
 	"github.com/docopt/docopt-go"
 	"github.com/lectio/dropmark"
 	"github.com/lectio/generator"
-	"github.com/lectio/link"
 )
 
 type ignoreURLsRegExList []*regexp.Regexp
@@ -187,25 +187,35 @@ func main() {
 	if options.Generate && options.Hugo && options.From && options.Dropmark {
 		for i := 0; i < len(options.DropmarkURLs); i++ {
 			dropmarkURL := options.DropmarkURLs[i]
-			dc, getErr := dropmark.GetDropmarkCollection(dropmarkURL, options.removeParamsFromURL, options.ignoreURLs, true, options.Verbose, options.HTTPUserAgent, options.HTTPTimeout)
+			dropmarkCollection, getErr := dropmark.GetDropmarkCollection(dropmarkURL, options.removeParamsFromURL, options.ignoreURLs, true, options.Verbose, options.HTTPUserAgent, options.HTTPTimeout)
 			if getErr != nil {
 				panic(getErr)
 			}
-			options.reportErrors(dc.Errors())
+			options.reportErrors(dropmarkCollection.Errors())
+
+			filterResults := dropmarkCollection.FilterInvalidItems()
+			options.reportErrors(filterResults.Errors())
+
+			fcItems, fcItemsErr := filterResults.Filtered().Content()
+			if fcItemsErr != nil {
+				panic(fcItemsErr)
+			}
+
 			handler := func(index int) (*url.URL, string, error) {
-				item := dc.Items[index]
-				url, urlErr := link.GetResourceURL(item.TargetResource())
+				item := fcItems[index].(content.CuratedContent)
+				url, urlErr := item.Link().FinalURL()
 				if urlErr != nil {
 					return url, item.Keys().GloballyUniqueKey(), urlErr
 				}
 				return url, item.Keys().GloballyUniqueKey(), nil
 			}
 			iterator := func() (startIndex int, endIndex int, retrievalFn score.TargetsIteratorRetrievalFn) {
-				return 0, len(dc.Items) - 1, handler
+				return 0, len(fcItems) - 1, handler
 			}
 			sc := score.MakeCollection(iterator, options.Verbose, true)
+
 			options.reportErrors(sc.Errors())
-			generator, genErr := generator.NewHugoGenerator(dc, sc, options.HugoHomePath, options.HugoContentID, options.CreateDestPaths, options.Verbose, true)
+			generator, genErr := generator.NewHugoGenerator(filterResults.Filtered(), sc, options.HugoHomePath, options.HugoContentID, options.CreateDestPaths, options.Verbose, true)
 			if genErr != nil {
 				panic(genErr)
 			}
